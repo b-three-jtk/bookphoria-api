@@ -16,6 +16,12 @@ class BookController extends Controller
     public function index()
     {
         //
+        $books = Book::all();
+
+        return response()->json([
+            "message" => "Books retrieved",
+            "books" => $books
+        ], 200);
     }
 
     /**
@@ -77,6 +83,12 @@ class BookController extends Controller
     public function update(Request $request, Book $book)
     {
         //
+        $book->update($request->all());
+
+        return response()->json([
+            "message" => "Book updated",
+            "book" => $book
+        ], 200);
     }
 
     /**

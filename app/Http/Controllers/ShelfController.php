@@ -16,6 +16,12 @@ class ShelfController extends Controller
     public function index()
     {
         //
+        $shelves = Shelf::all();
+
+        return response()->json([
+            "message" => "Shelves retrieved",
+            "shelves" => $shelves
+        ], 200);
     }
 
     /**
@@ -37,6 +43,12 @@ class ShelfController extends Controller
     public function store(StoreShelfRequest $request)
     {
         //
+        $shelf = Shelf::create($request->validated());
+
+        return response()->json([
+            "message" => "New Shelf added",
+            "shelf" => $shelf
+        ], 201);
     }
 
     /**
@@ -71,6 +83,12 @@ class ShelfController extends Controller
     public function update(UpdateShelfRequest $request, Shelf $shelf)
     {
         //
+        $shelf->update($request->validated());
+
+        return response()->json([
+            "message" => "Shelf updated",
+            "shelf" => $shelf
+        ], 200);
     }
 
     /**
@@ -79,8 +97,14 @@ class ShelfController extends Controller
      * @param  \App\Models\Shelf  $shelf
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Shelf $shelf)
+    public function destroy($id)
     {
         //
+        $shelf = Shelf::find($id);
+        $shelf->delete();
+
+        return response()->json([
+            "message" => "Shelf deleted"
+        ], 200);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAuthorRequest;
 use App\Models\Author;
 use Illuminate\Http\Request;
 
@@ -15,6 +16,12 @@ class AuthorController extends Controller
     public function index()
     {
         //
+        $authors = Author::all();
+
+        return response()->json([
+            "message" => "Authors retrieved",
+            "authors" => $authors
+        ], 200);
     }
 
     /**
@@ -33,9 +40,15 @@ class AuthorController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreAuthorRequest $request)
     {
         //
+        $author = Author::create($request->validated());
+
+        return response()->json([
+            "message" => "New Author added",
+            "author" => $author
+        ], 201);
     }
 
     /**
@@ -70,6 +83,12 @@ class AuthorController extends Controller
     public function update(Request $request, Author $author)
     {
         //
+        $author->update($request->validated());
+
+        return response()->json([
+            "message" => "Author updated",
+            "author" => $author
+        ], 200);
     }
 
     /**
@@ -78,8 +97,14 @@ class AuthorController extends Controller
      * @param  \App\Models\Author  $author
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Author $author)
+    public function destroy($id)
     {
         //
+        $author = Author::find($id);
+        $author->delete();
+
+        return response()->json([
+            "message" => "Author deleted"
+        ], 204);
     }
 }

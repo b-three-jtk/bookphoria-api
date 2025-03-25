@@ -24,6 +24,7 @@ class StoreBookRequest extends FormRequest
     public function rules()
     {
         return [
+            'author_id' => 'required|integer|exists:authors,id',
             'title' => 'required|string|max:255',
             'publisher' => 'nullable|string|max:255',
             'published_date' => 'required|date',
