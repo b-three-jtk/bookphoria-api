@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreBookRequest;
 use App\Models\Book;
+use App\Models\Author;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+use App\Http\Requests\StoreBookRequest;
 
 class BookController extends Controller
 {
@@ -15,9 +18,30 @@ class BookController extends Controller
      */
     public function index()
     {
-        //
-        $books = Book::all();
-
+        $query = request()->query('search');
+        Log::info("Received search query: " . $query);
+    
+        if (auth()->check()) {
+            Log::info("User is authenticated");
+        } else {
+            Log::warning("User is not authenticated");
+        }
+    
+        $books = Book::where('isbn', 'LIKE', "%{$query}%")->get();
+    
+        if ($books->isEmpty() && $query) {
+            $booksFromApi = $this->fetchFromGoogleBooks($query);
+    
+            if (!empty($booksFromApi)) {
+                Log::info("Masuk sini fetch from google books");
+                $books = collect($booksFromApi);
+            }
+        }
+    
+        if ($books->isEmpty()) {
+            $books = Book::all();
+        }
+    
         return response()->json([
             "message" => "Books retrieved",
             "books" => $books
@@ -25,13 +49,51 @@ class BookController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Search Google Books API
      *
-     * @return \Illuminate\Http\Response
+     * @param string $query
+     * @return array
      */
-    public function create()
+    private function fetchFromGoogleBooks($query)
     {
-        //
+        $response = Http::get("https://www.googleapis.com/books/v1/volumes", [
+            'q' => $query,
+            'maxResults' => 10
+        ]);
+
+        $data = $response->json();
+
+        if (!isset($data['items'])) {
+            return [];
+        }
+
+        $books = [];
+        foreach ($data['items'] as $item) {
+            $volumeInfo = $item['volumeInfo'];
+            $isbn = $volumeInfo['industryIdentifiers'][0]['identifier'] ?? null;
+
+            if (!Book::where('isbn', $isbn)->exists()) {
+                $authorName = $volumeInfo['authors'][0] ?? 'Unknown Author';
+                $author = Author::firstOrCreate(['name' => $authorName]);
+
+                $book = Book::firstOrCreate(
+                    ['isbn' => $isbn],
+                    [
+                        'title' => $volumeInfo['title'] ?? 'Unknown Title',
+                        'publisher' => $volumeInfo['publisher'] ?? 'Unknown Publisher',
+                        'published_date' => $volumeInfo['publishedDate'] ?? '',
+                        'synopsis' => $volumeInfo['description'] ?? '',
+                        'pages' => $volumeInfo['pageCount'] ?? 0,
+                        'cover' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
+                        'author_id' => $author->id
+                    ]
+                );
+
+                $books[] = $book;
+            }
+        }
+
+        return $books;
     }
 
     /**
