@@ -8,10 +8,8 @@ class StoreBookRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
-    public function authorize()
+    public function authorize(): bool
     {
         return true;
     }
@@ -21,17 +19,27 @@ class StoreBookRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    public function rules()
+    public function rules(): array
     {
         return [
-            'author_id' => 'required|integer|exists:authors,id',
             'title' => 'required|string|max:255',
             'publisher' => 'nullable|string|max:255',
             'published_date' => 'required|date',
             'synopsis' => 'required|string',
-            'isbn' => 'nullable|string|max:20|unique:books',
+            'isbn' => 'nullable|string|max:20|unique:books,isbn',
             'pages' => 'required|integer|min:1',
             'cover' => 'required|string',
+
+            'authors' => 'required|array|min:1',
+            'authors.*' => 'required|string|max:255',
+
+            'genres' => 'required|array|min:1',
+            'genres.*' => 'required|string|max:255',
+
+            'user_status' => 'required|string|in:unread,reading,finished',
+            'user_page_count' => 'required|integer|min:0',
+            'user_start_date' => 'nullable|date',
+            'user_finish_date' => 'nullable|date|after_or_equal:user_start_date',
         ];
     }
 }
