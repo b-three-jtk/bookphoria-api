@@ -35,6 +35,8 @@ Route::post('logout',[UserAuthController::class,'logout'])
 Route::middleware('auth:sanctum')->group(function () {
     // Book routes, for adding, deleting, and viewing books master list
     Route::get('/books', [BookController::class, 'index']);
+    Route::get('/books/isbn', [BookController::class, 'getBookByISBN']);
+    Route::get('/books/search', [BookController::class, 'getBooksByTitleOrISBN']);
     Route::post('/books', [BookController::class, 'store']);
     Route::delete('/books/{id}', [BookController::class, 'destroy']);
     

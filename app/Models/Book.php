@@ -25,9 +25,10 @@ class Book extends Model
         'cover',
     ];
 
-    public function author()
+    public function authors()
     {
-        return $this->belongsTo(Author::class);
+        return $this->belongsToMany(Author::class, 'author_books', 'book_id', 'author_id')
+                    ->withTimestamps();
     }
 
     public function shelves()
@@ -38,7 +39,12 @@ class Book extends Model
 
     public function genres()
     {
-        return $this->hasMany(Genre::class);
-    }
+        return $this->belongsToMany(Genre::class, 'book_genres', 'book_id', 'genre_id')
+                    ->withTimestamps();
+    }    
 
+    public function userBooks()
+    {
+        return $this->hasMany(UserBook::class, 'book_id', 'id');
+    }
 }

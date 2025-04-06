@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Book;
+use App\Models\Genre;
 use App\Models\Author;
+use App\Models\UserBook;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Http\Requests\StoreBookRequest;
@@ -18,30 +22,86 @@ class BookController extends Controller
      */
     public function index()
     {
-        $query = request()->query('search');
-        Log::info("Received search query: " . $query);
+        $books = Book::all();
     
-        if (auth()->check()) {
-            Log::info("User is authenticated");
-        } else {
-            Log::warning("User is not authenticated");
+        return response()->json([
+            "message" => "Books retrieved",
+            "books" => $books
+        ], 200);
+    }
+
+    /**
+     * Search for books using Google Books API
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+    public function getBookByISBN(Request $request)
+    {
+        $isbn = $request->input('q');
+
+        if (!$isbn) {
+            return response()->json([
+                "message" => "ISBN is required"
+            ], 400);
         }
-    
-        $books = Book::where('isbn', 'LIKE', "%{$query}%")->get();
-    
-        if ($books->isEmpty() && $query) {
-            $booksFromApi = $this->fetchFromGoogleBooks($query);
-    
-            if (!empty($booksFromApi)) {
-                Log::info("Masuk sini fetch from google books");
-                $books = collect($booksFromApi);
-            }
-        }
-    
+
+        $books = Book::where('isbn', $isbn)->get();
+
         if ($books->isEmpty()) {
-            $books = Book::all();
+            $books = $this->fetchFromGoogleBooks($isbn);
         }
-    
+
+        if (!$books) {
+            return response()->json([
+                "message" => "No books found"
+            ], 404);
+        }
+
+        return response()->json([
+            "message" => "Books retrieved",
+            "books" => $books
+        ], 200);
+    }
+
+    /**
+     * Search for books using Google Books API
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getBooksByTitleOrISBN(Request $request)
+    {
+        $query = $request->input('q');
+
+        if (empty($query)) {
+            return response()->json([
+                "message" => "Query is required"
+            ], 400);
+        }
+
+        $books = Book::query();
+
+        if ($query) {
+            $books = $books->where(function ($q) use ($query) {
+                $q->where('isbn', 'LIKE', "%{$query}%")
+                    ->orWhere('title', 'LIKE', "%{$query}%");
+            });
+        }
+        
+        $books = $books->get();
+        
+        if ($books->isEmpty()) {
+            $books = $this->fetchFromGoogleBooks($query);
+        }
+
+        if (empty($books)) {
+            return response()->json([
+                "message" => "No books found"
+            ], 404);
+        }
+
         return response()->json([
             "message" => "Books retrieved",
             "books" => $books
@@ -70,7 +130,18 @@ class BookController extends Controller
         $books = [];
         foreach ($data['items'] as $item) {
             $volumeInfo = $item['volumeInfo'];
-            $isbn = $volumeInfo['industryIdentifiers'][0]['identifier'] ?? null;
+            if (isset($volumeInfo['industryIdentifiers'])) {
+                foreach ($volumeInfo['industryIdentifiers'] as $identifier) {
+                    if ($identifier['type'] === 'ISBN_10') {
+                        $isbn = $identifier['identifier'];
+                        break;
+                    }
+                }
+            
+                if (count($volumeInfo['industryIdentifiers']) > 0) {
+                    $isbn = $volumeInfo['industryIdentifiers'][0]['identifier'];
+                }
+            }
 
             if (!Book::where('isbn', $isbn)->exists()) {
                 $authorName = $volumeInfo['authors'][0] ?? 'Unknown Author';
@@ -105,12 +176,65 @@ class BookController extends Controller
     public function store(StoreBookRequest $request)
     {
         //
-        $book = Book::create($request->validated());
+        $validated = $request->validated();
 
-        return response()->json([
-            "message" => "New Book added",
-            "book" => $book
-        ], 201);
+        DB::beginTransaction();
+        try {
+            $book = Book::create([
+                'id' => Str::uuid(),
+                'title' => $validated['title'],
+                'publisher' => $validated['publisher'],
+                'published_date' => $validated['published_date'],
+                'synopsis' => $validated['synopsis'],
+                'isbn' => $validated['isbn'],
+                'pages' => $validated['pages'],
+                'cover' => $validated['cover']
+            ]);
+
+            foreach ($validated['authors'] as $authorName) {
+                $author = Author::firstOrCreate(
+                    ['name' => $authorName],
+                    ['id' => Str::uuid()]
+                );
+                $book->authors()->attach($author->id);
+            }
+
+            foreach ($validated['genres'] as $genreName) {
+                $genre = Genre::firstOrCreate(
+                    ['name' => $genreName],
+                    ['id' => Str::uuid()]
+                );
+                $book->genres()->attach($genre->id);
+            }
+
+            $user = auth()->user();
+            $userBook = UserBook::create([
+                'id' => Str::uuid(),
+                'user_id' => $user->id,
+                'book_id' => $book->id,
+                'status' => $validated['user_status'],
+                'page_count' => $validated['user_page_count'],
+                'start_date' => $validated['user_start_date'],
+                'finish_date' => $validated['user_finish_date'],
+            ]);
+
+            DB::commit();
+            return response()->json([
+                "message" => "Book added successfully",
+                "book" => $book,,
+                "authors" => $book->authors,
+                "genres" => $book->genres,
+                "user_book" => $userBook
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating book: ' . $e->getMessage());
+            return response()->json([
+                "message" => "Failed to add book",
+                "error" => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
