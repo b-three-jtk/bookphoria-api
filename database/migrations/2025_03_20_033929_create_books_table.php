@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('synopsis');
             $table->string('isbn')->nullable();
             $table->integer('pages');
-            $table->string('cover');
+            $table->string('cover')->nullable();
             $table->timestamps();
         });
     }

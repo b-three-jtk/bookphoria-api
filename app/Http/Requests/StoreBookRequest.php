@@ -24,11 +24,11 @@ class StoreBookRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'publisher' => 'nullable|string|max:255',
-            'published_date' => 'required|date',
+            'published_date' => 'required|string',
             'synopsis' => 'required|string',
             'isbn' => 'nullable|string|max:20|unique:books,isbn',
             'pages' => 'required|integer|min:1',
-            'cover' => 'required|string',
+            'cover' => 'nullable|string',
 
             'authors' => 'required|array|min:1',
             'authors.*' => 'required|string|max:255',
@@ -36,10 +36,8 @@ class StoreBookRequest extends FormRequest
             'genres' => 'required|array|min:1',
             'genres.*' => 'required|string|max:255',
 
-            'user_status' => 'required|string|in:unread,reading,finished',
+            'user_status' => 'required|string|in:unread,reading,finished,owned',
             'user_page_count' => 'required|integer|min:0',
-            'user_start_date' => 'nullable|date',
-            'user_finish_date' => 'nullable|date|after_or_equal:user_start_date',
         ];
     }
 }

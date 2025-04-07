@@ -50,7 +50,7 @@ class BookController extends Controller
         $books = Book::where('isbn', $isbn)->get();
 
         if ($books->isEmpty()) {
-            $books = $this->fetchFromGoogleBooks($isbn);
+            $books = $this->fetchFromGoogleBooksByISBN($isbn);
         }
 
         if (!$books) {
@@ -63,6 +63,83 @@ class BookController extends Controller
             "message" => "Books retrieved",
             "books" => $books
         ], 200);
+    }
+
+    private function fetchFromGoogleBooksByISBN($isbn)
+    {
+        $response = Http::get("https://www.googleapis.com/books/v1/volumes", [
+            'isbn' => "$isbn",
+            'maxResults' => 1
+        ]);
+
+        $data = $response->json();
+
+        if (!isset($data['items'])) {
+            return [];
+        }
+
+        $books = [];
+
+        foreach ($data['items'] as $item) {
+            $volumeInfo = $item['volumeInfo'];
+
+            $bookIsbn = null;
+            if (isset($volumeInfo['industryIdentifiers'])) {
+                foreach ($volumeInfo['industryIdentifiers'] as $identifier) {
+                    if (in_array($identifier['type'], ['ISBN_13', 'ISBN_10'])) {
+                        $bookIsbn = $identifier['identifier'];
+                        break;
+                    }
+                }
+            }
+
+            // Fallback ke parameter utama jika tidak ditemukan di data
+            $bookIsbn = $bookIsbn ?? $isbn;
+
+            if (!Book::where('isbn', $bookIsbn)->exists()) {
+                $book = Book::create([
+                    'isbn' => $bookIsbn,
+                    'title' => $volumeInfo['title'] ?? 'Unknown Title',
+                    'publisher' => $volumeInfo['publisher'] ?? 'Unknown Publisher',
+                    'published_date' => $volumeInfo['publishedDate'] ?? '',
+                    'synopsis' => $volumeInfo['description'] ?? '',
+                    'pages' => $volumeInfo['pageCount'] ?? 0,
+                    'cover' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
+                ]);
+
+                // Authors
+                if (isset($volumeInfo['authors']) && is_array($volumeInfo['authors'])) {
+                    foreach ($volumeInfo['authors'] as $authorName) {
+                        $author = Author::firstOrCreate(
+                            ['name' => $authorName],
+                            ['id' => Str::uuid()]
+                        );
+                        $book->authors()->attach($author->id);
+                    }
+                } else {
+                    $author = Author::firstOrCreate(
+                        ['name' => 'Unknown Author'],
+                        ['id' => Str::uuid()]
+                    );
+                    $book->authors()->attach($author->id);
+                }
+
+                // Genres / Categories
+                if (isset($volumeInfo['categories']) && is_array($volumeInfo['categories'])) {
+                    foreach ($volumeInfo['categories'] as $genreName) {
+                        $genre = Genre::firstOrCreate(
+                            ['name' => $genreName],
+                            ['id' => Str::uuid()]
+                        );
+                        $book->genres()->attach($genre->id);
+                    }
+                }
+
+                $books[] = $book;
+            }
+        }
+
+        return $books;
     }
 
     /**
@@ -144,24 +221,52 @@ class BookController extends Controller
             }
 
             if (!Book::where('isbn', $isbn)->exists()) {
-                $authorName = $volumeInfo['authors'][0] ?? 'Unknown Author';
-                $author = Author::firstOrCreate(['name' => $authorName]);
+                $title = $volumeInfo['title'] ?? 'Unknown Title';
+                $publisher = $volumeInfo['publisher'] ?? 'Unknown Publisher';
+                $publishedDate = $volumeInfo['publishedDate'] ?? '';
+                $synopsis = $volumeInfo['description'] ?? '';
+                $pages = $volumeInfo['pageCount'] ?? 0;
+                $cover = $volumeInfo['imageLinks']['thumbnail'] ?? '';
+            
+                $book = Book::create([
+                    'isbn' => $isbn,
+                    'title' => $title,
+                    'publisher' => $publisher,
+                    'published_date' => $publishedDate,
+                    'synopsis' => $synopsis,
+                    'pages' => $pages,
+                    'cover' => $cover,
+                ]);
+            
+                if (isset($volumeInfo['authors']) && is_array($volumeInfo['authors'])) {
+                    foreach ($volumeInfo['authors'] as $authorName) {
+                        $author = Author::firstOrCreate(
+                            ['name' => $authorName],
+                            ['id' => Str::uuid()]
+                        );
+                        $book->authors()->attach($author->id);
+                    }
+                } else {
+                    $author = Author::firstOrCreate(
+                        ['name' => 'Unknown Author'],
+                        ['id' => Str::uuid()]
+                    );
+                    $book->authors()->attach($author->id);
+                }
 
-                $book = Book::firstOrCreate(
-                    ['isbn' => $isbn],
-                    [
-                        'title' => $volumeInfo['title'] ?? 'Unknown Title',
-                        'publisher' => $volumeInfo['publisher'] ?? 'Unknown Publisher',
-                        'published_date' => $volumeInfo['publishedDate'] ?? '',
-                        'synopsis' => $volumeInfo['description'] ?? '',
-                        'pages' => $volumeInfo['pageCount'] ?? 0,
-                        'cover' => $volumeInfo['imageLinks']['thumbnail'] ?? '',
-                        'author_id' => $author->id
-                    ]
-                );
+                if (isset($volumeInfo['categories']) && is_array($volumeInfo['categories'])) {
+                    foreach ($volumeInfo['categories'] as $genreName) {
+                        $genre = Genre::firstOrCreate(
+                            ['name' => $genreName],
+                            ['id' => Str::uuid()]
+                        );
+                        $book->genres()->attach($genre->id);
+                    }
+                }
 
                 $books[] = $book;
             }
+            
         }
 
         return $books;
@@ -214,17 +319,14 @@ class BookController extends Controller
                 'book_id' => $book->id,
                 'status' => $validated['user_status'],
                 'page_count' => $validated['user_page_count'],
-                'start_date' => $validated['user_start_date'],
-                'finish_date' => $validated['user_finish_date'],
             ]);
 
             DB::commit();
             return response()->json([
                 "message" => "Book added successfully",
-                "book" => $book,,
+                "book" => $book,
                 "authors" => $book->authors,
                 "genres" => $book->genres,
-                "user_book" => $userBook
             ], 201);
 
         } catch (\Exception $e) {
