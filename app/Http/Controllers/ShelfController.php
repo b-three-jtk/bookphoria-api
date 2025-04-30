@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Shelf;
 use App\Http\Requests\StoreShelfRequest;
 use App\Http\Requests\UpdateShelfRequest;
@@ -42,8 +45,15 @@ class ShelfController extends Controller
      */
     public function store(StoreShelfRequest $request)
     {
-        //
-        $shelf = Shelf::create($request->validated());
+        $validated = $request->validated();
+        $validated['user_id'] = $request->user()->id;
+        
+        // Handle image upload (file or base64)
+        if ($request->has('image')) {
+            $validated['image'] = $this->handleImageUpload($request);
+        }
+
+        $shelf = Shelf::create($validated);
 
         return response()->json([
             "message" => "New Shelf added",
@@ -106,5 +116,31 @@ class ShelfController extends Controller
         return response()->json([
             "message" => "Shelf deleted"
         ], 200);
+    }
+
+    private function handleImageUpload(Request $request)
+    {
+        // Handle file upload
+        if ($request->hasFile('image')) {
+            return $request->file('image')->store('shelves', 'public');
+        }
+        
+        // Handle base64 string
+        $base64 = $request->input('image');
+        
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64, $matches)) {
+            $data = substr($base64, strpos($base64, ',') + 1);
+            $extension = $matches[1];
+        } else {
+            $data = $base64;
+            $extension = 'jpg';
+        }
+
+        $imageData = base64_decode($data);
+        $fileName = 'shelves/'.Str::uuid().'.'.$extension;
+        
+        Storage::disk('public')->put($fileName, $imageData);
+        
+        return $fileName;
     }
 }

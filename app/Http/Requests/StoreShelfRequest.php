@@ -13,7 +13,7 @@ class StoreShelfRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,9 @@ class StoreShelfRequest extends FormRequest
     public function rules()
     {
         return [
-            //
+            'name'=> 'required|string|max:255',
+            'desc'=> 'nullable|string|max:255',
+            'image'=> 'nullable|sometimes|string',
         ];
     }
 }
