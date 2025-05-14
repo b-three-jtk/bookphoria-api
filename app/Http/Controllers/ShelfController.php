@@ -45,21 +45,45 @@ class ShelfController extends Controller
      */
     public function store(StoreShelfRequest $request)
     {
-        $validated = $request->validated();
-        $validated['user_id'] = $request->user()->id;
-        
-        // Handle image upload (file or base64)
-        if ($request->has('image')) {
-            $validated['image'] = $this->handleImageUpload($request);
+        try {
+            $validated = $request->validated();
+            $validated['user_id'] = $request->user()->id;
+
+            $imagePath = null; // Default null
+
+            // Handle image upload hanya jika benar-benar ada dan tidak kosong
+            if ($request->has('image') && !empty($request->input('image'))) {
+                $imagePath = $this->handleImageUpload($request);
+
+                if ($imagePath === null) {
+                    throw new \Exception("Gagal memproses gambar");
+                }
+
+                $validated['image'] = $imagePath;
+            }
+
+            // Pastikan field 'desc' terisi
+            $validated['desc'] = $validated['desc'] ?? null;
+
+            $shelf = Shelf::create($validated);
+
+            return response()->json([
+                "success" => true,
+                "message" => "Shelf created successfully",
+                "data" => [
+                    "id" => $shelf->id,
+                    "image_url" => $imagePath ? Storage::url($imagePath) : null
+                ]
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => "Failed to create shelf: " . $e->getMessage()
+            ], 500);
         }
-
-        $shelf = Shelf::create($validated);
-
-        return response()->json([
-            "message" => "New Shelf added",
-            "shelf" => $shelf
-        ], 201);
     }
+
 
     /**
      * Display the specified resource.
@@ -118,29 +142,66 @@ class ShelfController extends Controller
         ], 200);
     }
 
-    private function handleImageUpload(Request $request)
+    private function handleImageUpload(Request $request): ?string
     {
-        // Handle file upload
-        if ($request->hasFile('image')) {
-            return $request->file('image')->store('shelves', 'public');
-        }
-        
-        // Handle base64 string
-        $base64 = $request->input('image');
-        
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64, $matches)) {
-            $data = substr($base64, strpos($base64, ',') + 1);
-            $extension = $matches[1];
-        } else {
-            $data = $base64;
-            $extension = 'jpg';
-        }
+        try {
+            // 1. Handle File Upload (Multipart)
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                
+                // Validasi ekstensi file
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                $extension = $file->getClientOriginalExtension();
+                
+                if (!in_array(strtolower($extension), $allowedExtensions)) {
+                    throw new \Exception("Ekstensi file tidak didukung. Gunakan: " . implode(', ', $allowedExtensions));
+                }
 
-        $imageData = base64_decode($data);
-        $fileName = 'shelves/'.Str::uuid().'.'.$extension;
-        
-        Storage::disk('public')->put($fileName, $imageData);
-        
-        return $fileName;
+                // Validasi ukuran file (max 2MB)
+                if ($file->getSize() > 2048 * 1024) {
+                    throw new \Exception("Ukuran file maksimal 2MB");
+                }
+
+                return $file->store('shelves', 'public');
+            }
+
+            // 2. Handle Base64 String
+            if ($request->filled('image')) {
+                $base64 = $request->input('image');
+                
+                // Ekstrak data dan ekstensi dari base64
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64, $matches)) {
+                    $data = substr($base64, strpos($base64, ',') + 1);
+                    $extension = $matches[1];
+                } else {
+                    $data = $base64;
+                    $extension = 'jpg'; // Default jika tidak ada ekstensi
+                }
+
+                // Validasi ekstensi
+                $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+                if (!in_array($extension, $allowedExtensions)) {
+                    throw new \Exception("Ekstensi base64 tidak didukung");
+                }
+
+                $imageData = base64_decode($data);
+                
+                // Validasi ukuran data (max 2MB)
+                if (strlen($imageData) > 2048 * 1024) {
+                    throw new \Exception("Ukuran gambar base64 maksimal 2MB");
+                }
+
+                $fileName = 'shelves/'.Str::uuid().'.'.$extension;
+                Storage::disk('public')->put($fileName, $imageData);
+                
+                return $fileName;
+            }
+
+            return null;
+
+        } catch (\Exception $e) {
+            \Log::error('Image Upload Error: ' . $e->getMessage());
+            return null;
+        }
     }
 }
