@@ -15,25 +15,25 @@ class UserAuthController extends Controller
     public function register(Request $request)
     {
         $registerUserData = $request->validate([
-            'name' => 'required|string',
+            'username' => 'required|string|max:20|unique:users',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|min:8'
         ]);
 
         $user = User::create([
-            'name' => $registerUserData['name'],
+            'username' => $registerUserData['username'],
             'email' => $registerUserData['email'],
             'password' => Hash::make($registerUserData['password']),
         ]);
 
-        $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
+        $token = $user->createToken($user->username . '-AuthToken')->plainTextToken;
 
         return response()->json([
             'accessToken' => $token,
             'tokenType' => 'Bearer',
             'user' => [
                 'id' => $user->id,
-                'name' => $user->name,
+                'username' => $user->username,
                 'email' => $user->email
             ]
         ], 201);
@@ -49,9 +49,9 @@ class UserAuthController extends Controller
         $user = User::where('email', $loginUserData['email'])->first();
 
         if (!$user || !Hash::check($loginUserData['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Invalid Credentials.']
-            ]);
+            return response()->json([
+                'message' => 'Invalid credentials'
+            ], 401);
         }
 
         $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
@@ -117,14 +117,47 @@ class UserAuthController extends Controller
         ], 422);
     }
 
-    public function logout(Request $request)
+    public function editProfile(Request $request)
     {
-        if ($request->user()) {
-            $request->user()->tokens()->delete();
+        $user = auth()->user();
+
+        $request->validate([
+            'username' => 'required|string|max:20|unique:users,username,' . $user->id,
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:8|confirmed'
+        ]);
+
+        $user->email = $request->email;
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->username = $request->username;
+        $user->avatar = $request->file('avatar') ? $request->file('avatar')->store('avatars', 'public') : $user->avatar;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
         }
 
+        $user->save();
+
         return response()->json([
-            "message" => "Logged out"
+            'message' => 'Profile updated successfully',
+            'user' => $user
         ]);
+    }
+
+    public function getUserByUsername($username)
+    {
+        $user = User::with(['books', 'friends', 'shelves', 'borrow', 'review'])
+            ->where('username', $username)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        return response()->json($user);
     }
 }
