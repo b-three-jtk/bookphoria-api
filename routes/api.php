@@ -60,9 +60,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/genres', [GenreController::class, 'index']);
     Route::post('/genres', [GenreController::class, 'store']);
     Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
-
-    Route::get('/shelves', [ShelfController::class, 'index']);
-    Route::post('/shelves', [ShelfController::class, 'store']);
-    Route::delete('/shelves/{id}', [ShelfController::class, 'destroy']);
 });
     
