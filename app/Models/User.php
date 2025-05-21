@@ -19,9 +19,12 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        'username',
+        'first_name',
+        'last_name',
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -46,5 +49,31 @@ class User extends Authenticatable
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new CustomResetPasswordNotification($token));
+    }
+
+    public function books()
+    {
+        return $this->hasMany(UserBook::class);
+    }
+
+    public function friends()
+    {
+        return $this->belongsToMany(User::class, 'user_friends', 'user_id', 'friend_id')
+            ->where('is_approved', true);
+    }
+
+    public function shelves()
+    {
+        return $this->hasMany(Shelf::class);
+    }
+
+    public function borrow() 
+    {
+        return $this->hasMany(Borrow::class, 'borrower_id');
+    }
+
+    public function review()
+    {
+        return $this->hasMany(Review::class);
     }
 }

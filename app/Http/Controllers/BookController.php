@@ -148,130 +148,182 @@ class BookController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
-    public function getBooksByTitleOrISBN(Request $request)
-    {
-        $query = $request->input('q');
+/**
+ * Search for books using Google Books API
+ *
+ * @param \Illuminate\Http\Request $request
+ * @return \Illuminate\Http\Response
+ */
+public function getBooksByTitleOrISBN(Request $request)
+{
+    $query = $request->input('q');
+    $perPage = (int)$request->input('per_page', 10);
+    $page = (int)$request->input('page', 1);
 
-        if (empty($query)) {
-            return response()->json([
-                "message" => "Query is required"
-            ], 400);
-        }
+    if (empty($query)) {
+        return response()->json(["message" => "Query is required"], 400);
+    }
 
-        $books = Book::query();
+    // Ambil dari DB lokal
+    $booksQuery = Book::where(function ($qBuilder) use ($query) {
+        $qBuilder->where('isbn', 'LIKE', "%{$query}%")
+                ->orWhere('title', 'LIKE', "%{$query}%");
+    });
 
-        if ($query) {
-            $books = $books->where(function ($q) use ($query) {
-                $q->where('isbn', 'LIKE', "%{$query}%")
-                    ->orWhere('title', 'LIKE', "%{$query}%");
-            });
-        }
-        
-        $books = $books->get();
-        
+    $total = $booksQuery->count();
+    
+    // If we have books in the local database
+    if ($total > 0) {
+        $books = $booksQuery->skip(($page - 1) * $perPage)
+                          ->take($perPage)
+                          ->get();
+                          
+        // If this specific page has no results (might happen on last pages)
         if ($books->isEmpty()) {
-            $books = $this->fetchFromGoogleBooks($query);
-        }
-
-        if (empty($books)) {
             return response()->json([
-                "message" => "No books found"
-            ], 404);
+                "message" => "No books found for this page",
+                "total" => $total,
+                "per_page" => $perPage,
+                "page" => $page,
+                "books" => []
+            ]);
         }
-
+        
         return response()->json([
             "message" => "Books retrieved",
-            "books" => $books
-        ], 200);
-    }
-
-    /**
-     * Search Google Books API
-     *
-     * @param string $query
-     * @return array
-     */
-    private function fetchFromGoogleBooks($query)
-    {
-        $response = Http::get("https://www.googleapis.com/books/v1/volumes", [
-            'q' => $query,
-            'maxResults' => 10
+            "books" => $books,
+            "total" => $total,
+            "per_page" => $perPage,
+            "page" => $page,
         ]);
+    }
+    
+    // If no books in local DB, fetch from Google
+    $fetchedBooks = $this->fetchFromGoogleBooks($query, $perPage, $page);
+    $total = count($fetchedBooks);
+    
+    if (empty($fetchedBooks)) {
+        return response()->json([
+            "message" => "No books found",
+            "total" => 0,
+            "per_page" => $perPage,
+            "page" => $page,
+            "books" => []
+        ], 404);
+    }
+    
+    return response()->json([
+        "message" => "Books retrieved from Google",
+        "books" => $fetchedBooks,
+        "total" => $total, 
+        "per_page" => $perPage,
+        "page" => $page,
+    ]);
+}
 
-        $data = $response->json();
+/**
+ * Search Google Books API with pagination support
+ *
+ * @param string $query
+ * @param int $perPage
+ * @param int $page
+ * @return array
+ */
+private function fetchFromGoogleBooks($query, $perPage = 10, $page = 1)
+{
+    // Calculate start index for Google Books API (0-based index)
+    $startIndex = ($page - 1) * $perPage;
+    
+    $response = Http::get("https://www.googleapis.com/books/v1/volumes", [
+        'q' => $query,
+        'maxResults' => $perPage,
+        'startIndex' => $startIndex
+    ]);
 
-        if (!isset($data['items'])) {
-            return [];
-        }
+    $data = $response->json();
 
-        $books = [];
-        foreach ($data['items'] as $item) {
-            $volumeInfo = $item['volumeInfo'];
-            if (isset($volumeInfo['industryIdentifiers'])) {
-                foreach ($volumeInfo['industryIdentifiers'] as $identifier) {
-                    if ($identifier['type'] === 'ISBN_10') {
-                        $isbn = $identifier['identifier'];
-                        break;
-                    }
-                }
-            
-                if (count($volumeInfo['industryIdentifiers']) > 0) {
-                    $isbn = $volumeInfo['industryIdentifiers'][0]['identifier'];
-                }
-            }
-
-            if (!Book::where('isbn', $isbn)->exists()) {
-                $title = $volumeInfo['title'] ?? 'Unknown Title';
-                $publisher = $volumeInfo['publisher'] ?? 'Unknown Publisher';
-                $publishedDate = $volumeInfo['publishedDate'] ?? '';
-                $synopsis = $volumeInfo['description'] ?? '';
-                $pages = $volumeInfo['pageCount'] ?? 0;
-                $cover = $volumeInfo['imageLinks']['thumbnail'] ?? '';
-            
-                $book = Book::create([
-                    'isbn' => $isbn,
-                    'title' => $title,
-                    'publisher' => $publisher,
-                    'published_date' => $publishedDate,
-                    'synopsis' => $synopsis,
-                    'pages' => $pages,
-                    'cover' => $cover,
-                ]);
-            
-                if (isset($volumeInfo['authors']) && is_array($volumeInfo['authors'])) {
-                    foreach ($volumeInfo['authors'] as $authorName) {
-                        $author = Author::firstOrCreate(
-                            ['name' => $authorName],
-                            ['id' => Str::uuid()]
-                        );
-                        $book->authors()->attach($author->id);
-                    }
-                } else {
-                    $author = Author::firstOrCreate(
-                        ['name' => 'Unknown Author'],
-                        ['id' => Str::uuid()]
-                    );
-                    $book->authors()->attach($author->id);
-                }
-
-                if (isset($volumeInfo['categories']) && is_array($volumeInfo['categories'])) {
-                    foreach ($volumeInfo['categories'] as $genreName) {
-                        $genre = Genre::firstOrCreate(
-                            ['name' => $genreName],
-                            ['id' => Str::uuid()]
-                        );
-                        $book->genres()->attach($genre->id);
-                    }
-                }
-
-                $books[] = $book;
-            }
-            
-        }
-
-        return $books;
+    if (!isset($data['items'])) {
+        return [];
     }
 
+    $books = [];
+    foreach ($data['items'] as $item) {
+        $volumeInfo = $item['volumeInfo'];
+        $isbn = null;
+        
+        if (isset($volumeInfo['industryIdentifiers'])) {
+            foreach ($volumeInfo['industryIdentifiers'] as $identifier) {
+                if ($identifier['type'] === 'ISBN_10' || $identifier['type'] === 'ISBN_13') {
+                    $isbn = $identifier['identifier'];
+                    break;
+                }
+            }
+        
+            if (!$isbn && count($volumeInfo['industryIdentifiers']) > 0) {
+                $isbn = $volumeInfo['industryIdentifiers'][0]['identifier'];
+            }
+        }
+        
+        // If no ISBN found, generate a unique identifier
+        if (!$isbn) {
+            $isbn = 'GB-' . md5($item['id'] . ($volumeInfo['title'] ?? 'unknown'));
+        }
+
+        // Check if this book already exists in the database
+        $existingBook = Book::where('isbn', $isbn)->first();
+        if ($existingBook) {
+            $books[] = $existingBook;
+            continue;
+        }
+
+        $title = $volumeInfo['title'] ?? 'Unknown Title';
+        $publisher = $volumeInfo['publisher'] ?? 'Unknown Publisher';
+        $publishedDate = $volumeInfo['publishedDate'] ?? '';
+        $synopsis = $volumeInfo['description'] ?? '';
+        $pages = $volumeInfo['pageCount'] ?? 0;
+        $cover = isset($volumeInfo['imageLinks']) ? ($volumeInfo['imageLinks']['thumbnail'] ?? '') : '';
+    
+        $book = Book::create([
+            'isbn' => $isbn,
+            'title' => $title,
+            'publisher' => $publisher,
+            'published_date' => $publishedDate,
+            'synopsis' => $synopsis,
+            'pages' => $pages,
+            'cover' => $cover,
+        ]);
+    
+        if (isset($volumeInfo['authors']) && is_array($volumeInfo['authors'])) {
+            foreach ($volumeInfo['authors'] as $authorName) {
+                $author = Author::firstOrCreate(
+                    ['name' => $authorName],
+                    ['id' => Str::uuid()]
+                );
+                $book->authors()->attach($author->id);
+            }
+        } else {
+            $author = Author::firstOrCreate(
+                ['name' => 'Unknown Author'],
+                ['id' => Str::uuid()]
+            );
+            $book->authors()->attach($author->id);
+        }
+
+        if (isset($volumeInfo['categories']) && is_array($volumeInfo['categories'])) {
+            foreach ($volumeInfo['categories'] as $genreName) {
+                $genre = Genre::firstOrCreate(
+                    ['name' => $genreName],
+                    ['id' => Str::uuid()]
+                );
+                $book->genres()->attach($genre->id);
+            }
+        }
+
+        $books[] = $book;
+    }
+
+    return $books;
+}
     /**
      * Store a newly created resource in storage.
      *

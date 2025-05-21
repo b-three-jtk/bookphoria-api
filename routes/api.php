@@ -8,6 +8,7 @@ use App\Http\Controllers\ShelfController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserBookController;
+use App\Http\Controllers\UserFriendController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,5 +61,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/genres', [GenreController::class, 'index']);
     Route::post('/genres', [GenreController::class, 'store']);
     Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
+
+    // UserFriend routes, for sending, accepting, and rejecting friend requests
+    Route::post('/friends/request', [UserFriendController::class, 'requestFriend']);
+    Route::post('/friends/accept/{friendId}', [UserFriendController::class, 'acceptFriendRequest']);
+    Route::post('/friends/reject/{friendId}', [UserFriendController::class, 'rejectFriendRequest']);
+    Route::get('/friends/pending', [UserFriendController::class, 'showPendingRequests']);
+    Route::get('/friends', [UserFriendController::class, 'showAllFriends']);
+    Route::get('/friends/{friendId}', [UserFriendController::class, 'getFriendById']);
+
+    // User routes, for viewing user profile and updating user profile
+    Route::get('/user/{userName}', [UserAuthController::class, 'getUserByUsername']);
 });
     
