@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\Shelf;
 use App\Http\Requests\StoreShelfRequest;
 use App\Http\Requests\UpdateShelfRequest;
+use App\Http\Requests\AddBookToShelfRequest;
 
 class ShelfController extends Controller
 {
@@ -203,5 +204,20 @@ class ShelfController extends Controller
             \Log::error('Image Upload Error: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function addBook(AddBookToShelfRequest $request, Shelf $shelf)
+    {
+        $bookId = $request->book_id;
+
+        // Cegah duplikasi
+        if ($shelf->books()->where('book_id', $bookId)->exists()) {
+            return response()->json(['message' => 'Buku sudah ada di rak ini.'], 409);
+        }
+
+        // Tambahkan ke shelf
+        $shelf->books()->attach($bookId);
+
+        return response()->json(['message' => 'Buku berhasil ditambahkan ke rak.'], 201);
     }
 }
