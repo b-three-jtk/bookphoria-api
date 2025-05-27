@@ -35,7 +35,10 @@ class UserAuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'username' => $user->username,
-                'email' => $user->email
+                'email' => $user->email,
+                'book_count' => 0,
+                'reading_list_count' => 0,
+                'friend_count' => 0
             ]
         ], 201);
     }
@@ -60,7 +63,14 @@ class UserAuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
+                'book_count' => $user->books()->count(),
+                'reading_list_count' => $user->shelves()->count(),
+                'friend_count' => $user->friends()->count()
+            ]
         ]);
     }
 
@@ -165,7 +175,20 @@ class UserAuthController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        return response()->json($user);
+        return response()->json([
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'book_count' => $user->books()->count(),
+            'reading_list_count' => $user->shelves()->count(),
+            'friend_count' => $user->friends()->count(),
+            'books' => $user->books,
+            'friends' => $user->friends,
+            'shelves' => $user->shelves
+        ]);
     }
 
     public function getCurrentUser(Request $request)
@@ -178,8 +201,9 @@ class UserAuthController extends Controller
             'email' => $user->email,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
-            'profile_picture' => $user->profile_picture,
+            'profile_picture' => $user->avatar ? asset('storage/' . $user->avatar) : null,
             'book_count' => $user->books()->count(),
+            'reading_list_count' => $user->shelves()->count(),
             'friend_count' => $user->friends()->count()
         ]);
     }
