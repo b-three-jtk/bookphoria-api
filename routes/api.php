@@ -76,5 +76,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User routes, for viewing user profile and updating user profile
     Route::get('/user/{userName}', [UserAuthController::class, 'getUserByUsername']);
+    Route::post('/user/profile', [UserAuthController::class, 'editProfile']);
 });
     
