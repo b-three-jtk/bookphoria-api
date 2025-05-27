@@ -137,10 +137,16 @@ class ShelfController extends Controller
     {
         //
         $shelf = Shelf::find($id);
-        $shelf->delete();
 
+        if (!$shelf) {
         return response()->json([
-            "message" => "Shelf deleted"
+            'message' => 'Shelf not found'
+        ], 404);
+        }
+
+        $shelf->delete();
+        return response()->json([
+            "message" => "Shelf deleted successfully."
         ], 200);
     }
 
