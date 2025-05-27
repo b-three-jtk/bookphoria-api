@@ -160,4 +160,20 @@ class UserAuthController extends Controller
 
         return response()->json($user);
     }
+
+    public function getCurrentUser(Request $request)
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'profile_picture' => $user->profile_picture,
+            'book_count' => $user->books()->count(),
+            'friend_count' => $user->friends()->count()
+        ]);
+    }
 }
