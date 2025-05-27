@@ -56,15 +56,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/shelves', [ShelfController::class, 'index']);
     Route::post('/shelves', [ShelfController::class, 'store']);
     Route::delete('/shelves/{id}', [ShelfController::class, 'destroy']);
+    Route::post('/shelves/{shelf}/books', [ShelfController::class, 'addBook']);
+    Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'removeBook']);
 
     // Genre routes, for adding, deleting, and viewing genres master list
     Route::get('/genres', [GenreController::class, 'index']);
     Route::post('/genres', [GenreController::class, 'store']);
     Route::delete('/genres/{id}', [GenreController::class, 'destroy']);
-
-    Route::get('/shelves', [ShelfController::class, 'index']);
-    Route::post('/shelves', [ShelfController::class, 'store']);
-    Route::delete('/shelves/{id}', [ShelfController::class, 'destroy']);
 
     // UserFriend routes, for sending, accepting, and rejecting friend requests
     Route::post('/friends/request', [UserFriendController::class, 'requestFriend']);
