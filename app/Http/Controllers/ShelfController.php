@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Shelf;
+use App\Models\Book;
 use App\Http\Requests\StoreShelfRequest;
 use App\Http\Requests\UpdateShelfRequest;
 use App\Http\Requests\AddBookToShelfRequest;
@@ -219,5 +220,15 @@ class ShelfController extends Controller
         $shelf->books()->attach($bookId);
 
         return response()->json(['message' => 'Buku berhasil ditambahkan ke rak.'], 201);
+    }
+
+    public function removeBook(Request $request, Shelf $shelf, Book $book)
+    {
+        $this->authorize('update', $shelf);
+
+        // Hapus relasi dari tabel pivot
+        $shelf->books()->detach($book->id);
+
+        return response()->json(['message' => 'Buku berhasil dihapus dari rak.']);
     }
 }
