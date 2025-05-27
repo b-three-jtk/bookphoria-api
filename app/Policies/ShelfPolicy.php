@@ -53,7 +53,7 @@ class ShelfPolicy
      */
     public function update(User $user, Shelf $shelf)
     {
-        //
+        return $user->id === $shelf->user_id;
     }
 
     /**
@@ -65,7 +65,7 @@ class ShelfPolicy
      */
     public function delete(User $user, Shelf $shelf)
     {
-        //
+        
     }
 
     /**

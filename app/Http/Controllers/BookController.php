@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use App\Http\Requests\StoreBookRequest;
+use Illuminate\Support\Facades\Storage;
 
 class BookController extends Controller
 {
@@ -335,6 +336,13 @@ private function fetchFromGoogleBooks($query, $perPage = 10, $page = 1)
         //
         $validated = $request->validated();
 
+        if ($request->hasFile('cover')) {
+            $path = $request->file('cover')->store('covers', 'public');
+            $coverUrl = Storage::url($path);
+        } else {
+            $coverUrl = null;
+        }
+
         DB::beginTransaction();
         try {
             $book = Book::create([
@@ -345,7 +353,7 @@ private function fetchFromGoogleBooks($query, $perPage = 10, $page = 1)
                 'synopsis' => $validated['synopsis'],
                 'isbn' => $validated['isbn'],
                 'pages' => $validated['pages'],
-                'cover' => $validated['cover']
+                'cover' => $coverUrl,
             ]);
 
             foreach ($validated['authors'] as $authorName) {

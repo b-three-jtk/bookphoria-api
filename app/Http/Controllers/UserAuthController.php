@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Validation\ValidationException;
 use App\Notifications\ResetPasswordNotification;
 
 class UserAuthController extends Controller
@@ -127,24 +128,30 @@ class UserAuthController extends Controller
             'last_name' => 'nullable|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8|confirmed'
         ]);
 
-        $user->email = $request->email;
-        $user->first_name = $request->first_name;
-        $user->last_name = $request->last_name;
-        $user->username = $request->username;
-        $user->avatar = $request->file('avatar') ? $request->file('avatar')->store('avatars', 'public') : $user->avatar;
+        $data = $request->only(['username', 'first_name', 'last_name', 'email']);
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
 
-        $user->save();
+        $user->update($data);
 
         return response()->json([
             'message' => 'Profile updated successfully',
-            'user' => $user
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            ]
         ]);
     }
 

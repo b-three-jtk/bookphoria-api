@@ -6,8 +6,10 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Shelf;
+use App\Models\Book;
 use App\Http\Requests\StoreShelfRequest;
 use App\Http\Requests\UpdateShelfRequest;
+use App\Http\Requests\AddBookToShelfRequest;
 
 class ShelfController extends Controller
 {
@@ -135,10 +137,16 @@ class ShelfController extends Controller
     {
         //
         $shelf = Shelf::find($id);
-        $shelf->delete();
 
+        if (!$shelf) {
         return response()->json([
-            "message" => "Shelf deleted"
+            'message' => 'Shelf not found'
+        ], 404);
+        }
+
+        $shelf->delete();
+        return response()->json([
+            "message" => "Shelf deleted successfully."
         ], 200);
     }
 
@@ -203,5 +211,30 @@ class ShelfController extends Controller
             \Log::error('Image Upload Error: ' . $e->getMessage());
             return null;
         }
+    }
+
+    public function addBook(AddBookToShelfRequest $request, Shelf $shelf)
+    {
+        $bookId = $request->book_id;
+
+        // Cegah duplikasi
+        if ($shelf->books()->where('book_id', $bookId)->exists()) {
+            return response()->json(['message' => 'Buku sudah ada di rak ini.'], 409);
+        }
+
+        // Tambahkan ke shelf
+        $shelf->books()->attach($bookId);
+
+        return response()->json(['message' => 'Buku berhasil ditambahkan ke rak.'], 201);
+    }
+
+    public function removeBook(Request $request, Shelf $shelf, Book $book)
+    {
+        $this->authorize('update', $shelf);
+
+        // Hapus relasi dari tabel pivot
+        $shelf->books()->detach($book->id);
+
+        return response()->json(['message' => 'Buku berhasil dihapus dari rak.']);
     }
 }
