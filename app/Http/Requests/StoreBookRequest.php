@@ -36,7 +36,7 @@ class StoreBookRequest extends FormRequest
             'genres' => 'required|array|min:1',
             'genres.*' => 'required|string|max:255',
 
-            'user_status' => 'required|string|in:reading,finished,owned',
+            'user_status' => 'required|string|in:reading,finished,owned,borrowed',
             'user_page_count' => 'required|integer|min:0',
         ];
     }
