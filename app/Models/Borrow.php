@@ -2,14 +2,25 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Borrow extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids;
 
-    protected $fillable = ['user_book_id', 'borrower_id', 'borrow_date', 'return_date'];
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    protected $fillable = [
+        'id',
+        'user_book_id',
+        'borrower_id',
+        'borrow_date',
+        'return_date',
+    ];
 
     public function userBook()
     {

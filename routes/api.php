@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserBookController;
 use App\Http\Controllers\UserFriendController;
+use App\Http\Controllers\BorrowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,5 +76,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // User routes, for viewing user profile and updating user profile
     Route::get('/user/{userName}', [UserAuthController::class, 'getUserByUsername']);
     Route::post('/user/profile', [UserAuthController::class, 'editProfile']);
+
+    //Borrow routes
+    Route::post('/borrows', [BorrowController::class, 'store']);
+    Route::patch('/borrows/{id}/approve', [BorrowController::class, 'acceptBorrowRequest']);
+    Route::delete('/borrows/{id}/reject', [BorrowController::class, 'rejectBorrowRequest']);
+    Route::get('/borrows/pending', [BorrowController::class, 'showPendingRequests']);
+    Route::get('/borrows/all', [BorrowController::class, 'showAllBorrows']);
+    Route::patch('/borrows/{id}/return', [BorrowController::class, 'returnBook']);
 });
     
