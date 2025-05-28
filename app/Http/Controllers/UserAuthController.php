@@ -67,6 +67,7 @@ class UserAuthController extends Controller
                 'id' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
                 'book_count' => $user->books()->count(),
                 'reading_list_count' => $user->shelves()->count(),
                 'friend_count' => $user->friends()->count()
@@ -174,6 +175,24 @@ class UserAuthController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not found.'], 404);
         }
+
+        return response()->json( [               
+            'user' => [
+                ...$user->toArray(),
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            ]
+        ]);
+    }
+
+    public function getProfile()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        
+        $user = User::find($user->id);
 
         return response()->json([
             'id' => $user->id,
