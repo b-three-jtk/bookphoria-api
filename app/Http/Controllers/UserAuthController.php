@@ -35,7 +35,10 @@ class UserAuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'username' => $user->username,
-                'email' => $user->email
+                'email' => $user->email,
+                'book_count' => 0,
+                'reading_list_count' => 0,
+                'friend_count' => 0
             ]
         ], 201);
     }
@@ -61,8 +64,13 @@ class UserAuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
             'user' => [
-                ...$user->toArray(),
+                'id' => $user->id,
+                'username' => $user->username,
+                'email' => $user->email,
                 'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                'book_count' => $user->books()->count(),
+                'reading_list_count' => $user->shelves()->count(),
+                'friend_count' => $user->friends()->count()
             ]
         ]);
     }
@@ -187,14 +195,35 @@ class UserAuthController extends Controller
         $user = User::find($user->id);
 
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'email' => $user->email,
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
-            ]
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'book_count' => $user->books()->count(),
+            'reading_list_count' => $user->shelves()->count(),
+            'friend_count' => $user->friends()->count(),
+            'books' => $user->books,
+            'friends' => $user->friends,
+            'shelves' => $user->shelves
+        ]);
+    }
+
+    public function getCurrentUser(Request $request)
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'profile_picture' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'book_count' => $user->books()->count(),
+            'reading_list_count' => $user->shelves()->count(),
+            'friend_count' => $user->friends()->count()
         ]);
     }
 }
