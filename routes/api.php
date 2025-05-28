@@ -40,9 +40,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/books/search', [BookController::class, 'getBooksByTitleOrISBN']);
     Route::post('/books', [BookController::class, 'store']);
     Route::delete('/books/{id}', [BookController::class, 'destroy']);
+    Route::post('/book/{id}', [BookController::class, 'update']);
     
     // UserBook routes, for adding and removing books from user's personal collection
-    Route::get('/user/books', [UserBookController::class, 'index']);
+    Route::get('/user/books', [UserBookController::class, 'getAllUserBooks']);
+    Route::get('/user/books/{status}', [UserBookController::class, 'getUserBooksByStatus']);
     Route::post('/user/books', [UserBookController::class, 'store']);
     Route::put('/user/books/{id}', [UserBookController::class, 'update']);
     Route::delete('/user/books/{id}', [UserBookController::class, 'destroy']);
@@ -75,5 +77,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // User routes, for viewing user profile and updating user profile
     Route::get('/user/{userName}', [UserAuthController::class, 'getUserByUsername']);
     Route::post('/user/profile', [UserAuthController::class, 'editProfile']);
+    Route::get('/user/profile', [UserAuthController::class, 'getProfile']);
 });
     

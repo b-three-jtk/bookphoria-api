@@ -60,7 +60,10 @@ class UserAuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user
+            'user' => [
+                ...$user->toArray(),
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            ]
         ]);
     }
 
@@ -165,6 +168,33 @@ class UserAuthController extends Controller
             return response()->json(['message' => 'User not found.'], 404);
         }
 
-        return response()->json($user);
+        return response()->json( [               
+            'user' => [
+                ...$user->toArray(),
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            ]
+        ]);
+    }
+
+    public function getProfile()
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+        
+        $user = User::find($user->id);
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            ]
+        ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
 use App\Models\UserBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -84,4 +85,70 @@ class UserBookController extends Controller
             'message' => 'Book removed from personal collection'
         ], 204);
     }
+
+    public function getAllUserBooks()
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $userBooks = UserBook::with(['book', 'book.authors', 'book.genres'])
+            ->where('user_id', $user->id)
+            ->get()
+            ->map(function ($userBook) {
+                $book = $userBook->book;
+                $bookArray = $book->toArray();
+                $bookArray['cover'] = $book->cover ? asset($book->cover) : null;
+
+                return [
+                    'user_book_id' => $userBook->id,
+                    'status' => $userBook->status,
+                    'page_count' => $userBook->page_count,
+                    'start_date' => $userBook->start_date,
+                    'finish_date' => $userBook->finish_date,
+                    'book' => $bookArray
+                ];
+            });
+
+        return response()->json([
+            'data' => $userBooks
+        ], 200);
+    }
+
+    public function getUserBooksByStatus($status = 'owned')
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $userBooks = UserBook::with(['book', 'book.authors', 'book.genres'])
+            ->where('user_id', $user->id)
+            ->where('status', $status)
+            ->get()
+            ->map(function ($userBook) {
+                $book = $userBook->book;
+                $bookArray = $book->toArray();
+                $bookArray['cover'] = $book->cover ? asset($book->cover) : null;
+
+                return [
+                    'user_book_id' => $userBook->id,
+                    'status' => $userBook->status,
+                    'page_count' => $userBook->page_count,
+                    'start_date' => $userBook->start_date,
+                    'finish_date' => $userBook->finish_date,
+                    'book' => $bookArray
+                ];
+            });
+
+        return response()->json([
+            'data' => $userBooks
+        ], 200);
+    }
+
 }
