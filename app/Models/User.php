@@ -76,4 +76,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    
+    public function getAvatarAttribute($value)
+    {
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        return url('storage/' . $value);
+    }
 }

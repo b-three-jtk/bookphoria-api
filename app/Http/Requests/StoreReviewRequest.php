@@ -13,7 +13,7 @@ class StoreReviewRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,6 +25,10 @@ class StoreReviewRequest extends FormRequest
     {
         return [
             //
+            'user_id' => 'required|exists:users,id',
+            'book_id' => 'required|uuid|exists:books,id',
+            'desc' => 'required|string|max:1000',
+            'rate' => 'required|integer|min:1|max:5',
         ];
     }
 }

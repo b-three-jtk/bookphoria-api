@@ -6,10 +6,11 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ShelfController;
 use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\BorrowController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\UserBookController;
 use App\Http\Controllers\UserFriendController;
-use App\Http\Controllers\BorrowController;
 
 /*
 |--------------------------------------------------------------------------
@@ -87,5 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/borrows/pending', [BorrowController::class, 'showPendingRequests']);
     Route::get('/borrows/all', [BorrowController::class, 'showAllBorrows']);
     Route::patch('/borrows/{id}/return', [BorrowController::class, 'returnBook']);
+
+    // Review routes    
+    Route::post('/review', [ReviewController::class, 'addReview']);
+    Route::get('/reviews/{bookId}', [ReviewController::class, 'showAllReviews']);
 });
     
