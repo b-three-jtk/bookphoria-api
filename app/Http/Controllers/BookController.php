@@ -363,10 +363,7 @@ class BookController extends Controller
             DB::commit();
             return response()->json([
                 "message" => "Book added successfully",
-                    "book" => [
-                        ...$book->toArray(),
-                        'cover' => $book->cover ? asset('storage/' . $book->cover) : null,
-                    ],
+                "book" => $book,
                 "authors" => $book->authors,
                 "genres" => $book->genres,
             ], 201);
@@ -451,10 +448,7 @@ class BookController extends Controller
 
             return response()->json([
                 'message' => 'Book updated successfully',
-                'book' => [
-                    ...$book->toArray(),
-                    'cover' => $book->cover ? asset('storage/' . $book->cover) : null,
-                ],
+                'book' => $book,
                 'authors' => $book->authors,
                 'genres' => $book->genres,
             ], 200);

@@ -30,8 +30,8 @@ class UserAuthController extends Controller
         $token = $user->createToken($user->username . '-AuthToken')->plainTextToken;
 
         return response()->json([
-            'accessToken' => $token,
-            'tokenType' => 'Bearer',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
             'user' => [
                 'id' => $user->id,
                 'username' => $user->username,
@@ -58,7 +58,7 @@ class UserAuthController extends Controller
             ], 401);
         }
 
-        $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
+        $token = $user->createToken($user->username . '-AuthToken')->plainTextToken;
 
         return response()->json([
             'access_token' => $token,
@@ -67,7 +67,7 @@ class UserAuthController extends Controller
                 'id' => $user->id,
                 'username' => $user->username,
                 'email' => $user->email,
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                'avatar' => $user->avatar,
                 'book_count' => $user->books()->count(),
                 'reading_list_count' => $user->shelves()->count(),
                 'friend_count' => $user->friends()->count()
@@ -161,7 +161,7 @@ class UserAuthController extends Controller
                 'first_name' => $user->first_name,
                 'last_name' => $user->last_name,
                 'email' => $user->email,
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                'avatar' => $user->avatar,
             ]
         ]);
     }
@@ -177,10 +177,7 @@ class UserAuthController extends Controller
         }
 
         return response()->json( [               
-            'user' => [
-                ...$user->toArray(),
-                'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
-            ]
+            'user' => $user
         ]);
     }
 
@@ -200,7 +197,7 @@ class UserAuthController extends Controller
             'email' => $user->email,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
-            'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'avatar' => $user->avatar,
             'book_count' => $user->books()->count(),
             'reading_list_count' => $user->shelves()->count(),
             'friend_count' => $user->friends()->count(),
@@ -220,7 +217,7 @@ class UserAuthController extends Controller
             'email' => $user->email,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,
-            'profile_picture' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+            'profile_picture' => $user->avatar,
             'book_count' => $user->books()->count(),
             'reading_list_count' => $user->shelves()->count(),
             'friend_count' => $user->friends()->count()
