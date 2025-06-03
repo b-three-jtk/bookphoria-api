@@ -463,8 +463,19 @@ class BookController extends Controller
         }
     }
 
-    public function edit(Book $book)
+    public function getBookById($id)
     {
-        //
+        $book = Book::with(['authors', 'genres', 'reviews', 'userBooks'])->find($id);
+
+        if (!$book) {
+            return response()->json([
+                "message" => "Book not found"
+            ], 404);
+        }
+
+        return response()->json([
+            "message" => "Book retrieved",
+            "book" => $book
+        ], 200);
     }
 }

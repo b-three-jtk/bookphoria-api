@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/books', [BookController::class, 'store']);
     Route::delete('/books/{id}', [BookController::class, 'destroy']);
     Route::post('/book/{id}', [BookController::class, 'update']);
+    Route::get('/book/{id}', [BookController::class, 'getBookById']);
     
     // UserBook routes, for adding and removing books from user's personal collection
     Route::get('/user/books', [UserBookController::class, 'getAllUserBooks']);

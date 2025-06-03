@@ -48,6 +48,11 @@ class Book extends Model
         return $this->hasMany(UserBook::class, 'book_id', 'id');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'book_id', 'id');
+    }
+
     public function getCoverAttribute($value)
     {
         if (filter_var($value, FILTER_VALIDATE_URL)) {
