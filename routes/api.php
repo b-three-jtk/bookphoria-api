@@ -52,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/user/books/{id}', [UserBookController::class, 'destroy']);
     Route::post('/user/books/update/{id}', [UserBookController::class, 'updateStatus']);
     Route::get('/user/book/{id}', [UserBookController::class, 'getUserBookById']);
+    Route::delete('/user/book/{id}/remove', [UserBookController::class, 'deleteUserBookById']);
 
     // Author routes, for adding, deleting, and viewing authors master list
     Route::get('/authors', [AuthorController::class, 'index']);
