@@ -116,14 +116,39 @@ class ShelfController extends Controller
      * @param  \App\Models\Shelf  $shelf
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateShelfRequest $request, Shelf $shelf)
+    public function update(Request $request)
     {
         //
-        $shelf->update($request->validated());
+        $user = auth()->user();
+
+        $shelf = Shelf::find($request->id)->where('user_id', $user->id)->first();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'desc' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif|max:2048'
+        ]);
+
+        // Handle image upload jika ada
+        if ($request->hasFile('image')) {
+            $imagePath = $this->handleImageUpload($request);
+
+            if ($imagePath === null) {
+                return response()->json([
+                    'message' => 'Failed to upload image'
+                ], 500);
+            }
+
+            $validated['image'] = $imagePath;
+        } else {
+            $validated['image'] = $shelf->image;
+        }
+
+        $shelf->update($validated);
 
         return response()->json([
-            "message" => "Shelf updated",
-            "shelf" => $shelf
+            'message' => 'Shelf updated successfully',
+            'shelf' => $shelf
         ], 200);
     }
 
