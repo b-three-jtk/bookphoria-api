@@ -213,11 +213,15 @@ class ShelfController extends Controller
         }
     }
 
-    public function addBook(AddBookToShelfRequest $request, Shelf $shelf)
+    public function addBook(AddBookToShelfRequest $request,  $shelf_id)
     {
         $bookId = $request->book_id;
 
-        // Cegah duplikasi
+        $shelf = Shelf::find($shelf_id);
+        if (!$shelf) {
+            return response()->json(['message' => 'Rak tidak ditemukan.'], 404);
+        }
+
         if ($shelf->books()->where('book_id', $bookId)->exists()) {
             return response()->json(['message' => 'Buku sudah ada di rak ini.'], 409);
         }
