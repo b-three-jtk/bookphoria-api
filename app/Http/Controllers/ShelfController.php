@@ -51,17 +51,12 @@ class ShelfController extends Controller
             $validated = $request->validated();
             $validated['user_id'] = $request->user()->id;
 
-            $imagePath = null; // Default null
-
-            // Handle image upload hanya jika benar-benar ada dan tidak kosong
-            if ($request->has('image') && !empty($request->input('image'))) {
-                $imagePath = $this->handleImageUpload($request);
-
-                if ($imagePath === null) {
-                    throw new \Exception("Gagal memproses gambar");
+            if ($request->hasFile('image')) {
+                if ($request->image && Storage::disk('public')->exists($request->image)) {
+                    Storage::disk('public')->delete($request->image);
                 }
 
-                $validated['image'] = $imagePath;
+                $validated['image'] = $request->file('image')->store('shelf', 'public');
             }
 
             // Pastikan field 'desc' terisi
@@ -72,9 +67,9 @@ class ShelfController extends Controller
             return response()->json([
                 "success" => true,
                 "message" => "Shelf created successfully",
-                "data" => [
+                "data" => [ 
                     "id" => $shelf->id,
-                    "image_url" => $imagePath ? Storage::url($imagePath) : null
+                    "image" => $shelf->image,
                 ]
             ], 201);
 

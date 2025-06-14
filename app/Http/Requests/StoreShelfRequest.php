@@ -26,7 +26,7 @@ class StoreShelfRequest extends FormRequest
         return [
             'name'=> 'required|string|max:255',
             'desc'=> 'nullable|string|max:255',
-            'image'=> 'nullable|sometimes|string',
+            'image'=> 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 }
