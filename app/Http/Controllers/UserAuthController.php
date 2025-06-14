@@ -119,14 +119,18 @@ class UserAuthController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return response()->json([
-                'message' => 'Password berhasil diubah'
-            ], 200);
+            return redirect()->route('password.reset.success')->with('status', 'Password berhasil diubah');
         }
 
-        return response()->json([
-            'message' => 'Link tidak valid atau sudah kadaluarsa'
-        ], 422);
+        return back()->with('error', 'Link tidak valid atau sudah kadaluarsa');
+    }
+
+    public function showResetForm(Request $request)
+    {
+        return view('auth.reset-password', [
+            'token' => $request->query('token'),
+            'email' => $request->query('email'),
+        ]);
     }
 
     public function editProfile(Request $request)

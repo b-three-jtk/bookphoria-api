@@ -22,7 +22,7 @@ class CustomResetPasswordNotification extends Notification
 
     public function toMail($notifiable)
     {
-        $url = 'bookphoria://reset-password?token='.$this->token.'&email='.urlencode($notifiable->email);
+       $url = config('app.frontend_url') . '/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
 
         return (new MailMessage)
             ->subject(Lang::get('Reset Password Notification'))
