@@ -62,6 +62,12 @@ class User extends Authenticatable
             ->where('is_approved', true);
     }
 
+    public function friendOf()
+    {
+        return $this->belongsToMany(User::class, 'user_friends', 'friend_id', 'user_id')
+            ->where('is_approved', true);
+    }
+
     public function shelves()
     {
         return $this->hasMany(Shelf::class);

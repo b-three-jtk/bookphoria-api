@@ -11,16 +11,6 @@ use App\Http\Requests\StoreUserBookRequest;
 class UserBookController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -41,29 +31,6 @@ class UserBookController extends Controller
             'message' => 'Book added to personal collection',
             'data' => $userBook
         ], 201);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\UserBook  $userBook
-     * @return \Illuminate\Http\Response
-     */
-    public function show(UserBook $userBook)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\UserBook  $userBook
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, UserBook $userBook)
-    {
-        //
     }
 
     /**
@@ -149,6 +116,69 @@ class UserBookController extends Controller
         return response()->json([
             'data' => $userBooks
         ], 200);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $userBook = UserBook::where('user_id', Auth::id())
+            ->where('book_id', $id)
+            ->firstOrFail();
+
+        $userBook->update(['status' => $request->status]);
+
+        return response()->json([
+            'message' => 'Book status updated',
+            'data' => $userBook
+        ], 200);
+    }
+
+    public function getUserBookById($id)
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $userBook = UserBook::with(['book', 'book.authors', 'book.genres'])
+            ->where('user_id', $user->id)
+            ->where('book_id', $id)
+            ->firstOrFail();
+
+        $book = $userBook->book;
+        $bookArray = $book->toArray();
+
+        return response()->json([
+            'data' => [
+                'user_book_id' => $userBook->id,
+                'status' => $userBook->status,
+                'page_count' => $userBook->page_count,
+                'start_date' => $userBook->start_date,
+                'finish_date' => $userBook->finish_date,
+                'book' => $bookArray
+            ]
+        ], 200);
+    }
+
+    public function deleteUserBookById($id)
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $userBook = UserBook::where('user_id', $user->id)
+            ->where('book_id', $id)
+            ->firstOrFail();
+
+        $userBook->delete();
+
+        return response()->json([
+            'message' => 'User book deleted successfully'
+        ], 204);
     }
 
 }

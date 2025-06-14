@@ -24,9 +24,9 @@ class StoreUserBookRequest extends FormRequest
     public function rules()
     {
         return [
-            'book_id' => 'required|integer|exists:books,id',
-            'page_count' => 'required|integer|min:1',
-            'status' => 'required|string|in:reading,completed,plan_to_read,unread',
+            'book_id' => 'required|string|exists:books,id',
+            'page_count' => 'required|integer|min:0',
+            'status' => 'required|string|in:reading,owned,borrowed',
             'start_date' => 'nullable|date',
             'finish_date' => 'nullable|date|after:start_date',
         ];

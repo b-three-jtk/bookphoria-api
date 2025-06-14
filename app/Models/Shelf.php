@@ -30,4 +30,13 @@ class Shelf extends Model
     {
         return $this->belongsToMany(Book::class, 'book_shelves', 'shelf_id', 'book_id')->withTimestamps();
     }
+
+    public function getImageAttribute($value)
+    {
+        if (filter_var($value, FILTER_VALIDATE_URL)) {
+            return $value;
+        }
+
+        return url('storage/' . $value);
+    }
 }
