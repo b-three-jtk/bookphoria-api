@@ -161,4 +161,24 @@ class UserBookController extends Controller
         ], 200);
     }
 
+    public function deleteUserBookById($id)
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $userBook = UserBook::where('user_id', $user->id)
+            ->where('book_id', $id)
+            ->firstOrFail();
+
+        $userBook->delete();
+
+        return response()->json([
+            'message' => 'User book deleted successfully'
+        ], 204);
+    }
+
 }
