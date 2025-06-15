@@ -119,14 +119,18 @@ class UserAuthController extends Controller
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return response()->json([
-                'message' => 'Password berhasil diubah'
-            ], 200);
+            return redirect()->route('password.reset.success')->with('status', 'Password berhasil diubah');
         }
 
-        return response()->json([
-            'message' => 'Link tidak valid atau sudah kadaluarsa'
-        ], 422);
+        return back()->with('error', 'Link tidak valid atau sudah kadaluarsa');
+    }
+
+    public function showResetForm(Request $request)
+    {
+        return view('auth.reset-password', [
+            'token' => $request->query('token'),
+            'email' => $request->query('email'),
+        ]);
     }
 
     public function editProfile(Request $request)
@@ -183,29 +187,45 @@ class UserAuthController extends Controller
 
     public function getProfile()
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. Please login first.',
+                ], 401);
+            }
+
+            $user = User::find($user->id);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile fetched successfully.',
+                'data' => [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'avatar' => $user->avatar ? asset('storage/' . $user->avatar) : null,
+                    'book_count' => $user->books()->count(),
+                    'reading_list_count' => $user->shelves()->count(),
+                    'friend_count' => $user->friends()->count(),
+                    'books' => $user->books,
+                    'friends' => $user->friends,
+                    'shelves' => $user->shelves,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong while fetching the profile.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-        
-        $user = User::find($user->id);
-
-        return response()->json([
-            'id' => $user->id,
-            'username' => $user->username,
-            'email' => $user->email,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'avatar' => $user->avatar,
-            'book_count' => $user->books()->count(),
-            'reading_list_count' => $user->shelves()->count(),
-            'friend_count' => $user->friends()->count(),
-            'books' => $user->books,
-            'friends' => $user->friends,
-            'shelves' => $user->shelves
-        ]);
     }
+
 
     public function getCurrentUser(Request $request)
     {
