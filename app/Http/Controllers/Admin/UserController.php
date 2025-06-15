@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 
 class UserController extends Controller
 {
-    //
     public function index()
     {
         $users = User::with('books')->get();
