@@ -63,6 +63,69 @@
                                     </tr>
                                 </thead>
                                 <!-- table header end -->
+                                <!-- table body start -->
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($users as $u)
+                                        <tr>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-10 h-10 overflow-hidden rounded-full">
+                                                            <img src="{{ $u->avatar ? $u->avatar : './images/user/user-17.jpg' }}" alt="brand" />
+                                                        </div>
+
+                                                        <div>
+                                                            <span
+                                                                class="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                                                {{ $u->first_name }} {{ $u->last_name }}
+                                                            </span>
+                                                            <span
+                                                                class="block text-gray-500 text-theme-xs dark:text-gray-400">
+                                                                {{ "@".$u->username }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $u->books->count() }} Buku
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $u->created_at->format('d M Y') }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p
+                                                        class="rounded-full bg-success-50 px-2 py-0.5 text-theme-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-500">
+                                                        Active
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <a href="#"
+                                                        class="text-theme-xs font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+                                                        {{-- edit --}}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                            fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                                                            <path
+                                                                d="M12.146 0.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-1.5 1.5-3-3 1.5-1.5zM11.5 2.5l-1.5 1.5-3-3 1.5-1.5a.5.5 0 0 1 .708 0l3 3zM1 12.5V16h3.5l8-8-3.5-3.5-8 8z" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
                             </table>
                         </div>
                     </div>
