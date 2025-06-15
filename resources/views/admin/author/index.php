@@ -1,5 +1,7 @@
 @extends('layouts.app')
+
 @section('title', 'User Management')
+
 @section('content')
     <div class="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
         <!-- Breadcrumb Start -->
@@ -7,6 +9,7 @@
             <include src="./partials/breadcrumb.html" />
         </div>
         <!-- Breadcrumb End -->
+
         <div class="space-y-5 sm:space-y-6">
             <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
                 <div class="px-5 py-4 sm:px-6 sm:py-5">
@@ -80,7 +83,6 @@
                                             </td>
                                             <td class="px-5 py-4 sm:px-6">
                                                 <div class="flex items-center">
-                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
                                                         {{ $a->books->count() }} Buku
                                                     </p>
                                                 </div>
@@ -94,14 +96,25 @@
                                             </td>
                                             <td class="px-5 py-4 sm:px-6">
                                                 <div class="flex items-center">
+                                                    <a href="#"
+                                                        class="text-theme-xs font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+                                                        {{-- edit --}}
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                            fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                                                            <path
+                                                                d="M12.146 0.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-1.5 1.5-3-3 1.5-1.5zM11.5 2.5l-1.5 1.5-3-3 1.5-1.5a.5.5 0 0 1 .708 0l3 3zM1 12.5V16h3.5l8-8-3.5-3.5-8 8z" />
+                                                        </svg>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
                                     @endforeach
+
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
