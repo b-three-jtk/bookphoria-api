@@ -109,7 +109,16 @@ class UserFriendController extends Controller
 
     public function getFriendById($friendId)
     {
-        $friend = User::with(['friends', 'books.book', 'shelves', 'borrow', 'review'])->find($friendId);
+        $friend = User::with([
+            'friends',
+            'books.book.authors',
+            'books.book.genres',
+            'shelves',
+            'shelves.books',
+            'shelves.books.authors',
+            'borrow',
+            'review'
+        ])->find($friendId);
 
         if (!$friend) {
             return response()->json(['message' => 'Friend not found.'], 404);

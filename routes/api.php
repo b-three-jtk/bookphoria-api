@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/shelves/{shelf}/books', [ShelfController::class, 'addBook']);
     Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'removeBook']);
     Route::post('/shelves/update/{id}', [ShelfController::class, 'update']);
+    Route::get('/shelves/{id}', [ShelfController::class, 'getShelfById']);
 
     // Genre routes, for adding, deleting, and viewing genres master list
     Route::get('/genres', [GenreController::class, 'index']);

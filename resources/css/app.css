@@ -1,4 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@100..900&display=swap")
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&display=swap")
+
 layer(base);
 
 @import "tailwindcss";
@@ -8,6 +10,7 @@ layer(base);
 @theme {
   --font-*: initial;
   --font-outfit: Quicksand, sans-serif;
+  --font-manrope: Manrope, sans-serif;
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -76,6 +79,18 @@ layer(base);
   --color-lighter-800: #665046;
   --color-lighter-900: #53423b;
   --color-lighter-950: #2c221e;
+
+--color-polo-blue-50: #f2f6fb;
+--color-polo-blue-100: #e8eff7;
+--color-polo-blue-200: #d5e1f0;
+--color-polo-blue-300: #bbcee6;
+--color-polo-blue-400: #96add6;
+--color-polo-blue-500: #879ccd;
+--color-polo-blue-600: #6f80bc;
+--color-polo-blue-700: #5d6aa5;
+--color-polo-blue-800: #4d5886;
+--color-polo-blue-900: #434c6c;
+--color-polo-blue-950: #272b3f;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -765,4 +780,47 @@ span.flatpickr-weekday,
     0px 1px 2px 0px rgba(16, 24, 40, 0.06);
   opacity: 0.8;
   cursor: grabbing; /* Changes the cursor to indicate dragging */
+}
+
+
+.nav-bar {
+    width: 100%;
+    top: 0;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    transition: background-color 0.3s ease, backdrop-filter 0.3s ease;
+    z-index: 100;
+}
+
+.nav-bar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+.select2-container--default .select2-selection--multiple {
+    background-color: transparent !important;
+    border: 1px solid #d1d5db !important; /* gray-300 */
+    border-radius: 0.5rem !important; /* rounded-lg */
+    padding: 0.625rem 1rem !important; /* py-2.5 px-4 */
+    min-height: 2.75rem !important; /* h-11 */
+    font-size: 0.875rem !important; /* text-sm */
+    color: #1f2937 !important; /* text-gray-800 */
+    box-shadow: none !important;
+}
+
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #93c5fd !important; /* focus:border-brand-300 */
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important; /* ring-brand-500/10 */
+}
+
+.select2-selection__choice {
+    background-color: #f3f4f6 !important; /* gray-100 */
+    color: #374151 !important; /* gray-700 */
+    border: none !important;
+    padding: 0.25rem 0.5rem !important;
+    margin-top: 0.25rem !important;
+    margin-right: 0.25rem !important;
+    font-size: 0.75rem !important;
+    border-radius: 0.375rem !important; /* rounded-md */
 }
