@@ -91,9 +91,9 @@
                                             Keep me logged in
                                         </label>
                                     </div>
-                                    <a href="/reset-password.html"
+                                    {{-- <a href="/reset-password.html"
                                         class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400">Forgot
-                                        password?</a>
+                                        password?</a> --}}
                                 </div>
                                 <!-- Button -->
                                 <div>
@@ -109,18 +109,9 @@
             </div>
         </div>
 
-        <div class="relative items-center hidden w-full h-full bg-brand-950 dark:bg-white/5 lg:grid lg:w-1/2">
+        <div class="relative items-center hidden w-full h-full overflow-hidden bg-light-500 dark:bg-white/5 lg:grid lg:w-1/2">
             <div class="flex items-center justify-center z-1">
-                <!-- ===== Common Grid Shape Start ===== -->
-                <include src="./partials/common-grid-shape.html"></include>
-                <div class="flex flex-col items-center max-w-xs">
-                    <a href="index.html" class="block mb-4">
-                        <img src="./images/logo/auth-logo.svg" alt="Logo" />
-                    </a>
-                    <p class="text-center text-gray-400 dark:text-white/60">
-                        Free and Open-Source Tailwind CSS Admin Dashboard Template
-                    </p>
-                </div>
+                <img class="object-cover -mt-50" src="{{ asset('images/illustration/landing-5.jpg') }}" alt="">
             </div>
         </div>
         <!-- Toggler -->
