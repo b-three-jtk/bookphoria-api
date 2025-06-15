@@ -62,6 +62,42 @@
                                 <!-- table header end -->
                                 <!-- table body start -->
                                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($authors as $a)
+                                        <tr>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $loop->iteration }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $a->name }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $a->books->count() }} Buku
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $a->created_at->format('d M Y') }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
