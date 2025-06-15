@@ -79,6 +79,88 @@
                                     </tr>
                                 </thead>
                                 <!-- table header end -->
+                                <!-- table body start -->
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                    @foreach ($books as $b)
+                                        <tr>
+                                                                                    <td class="px-5 py-4 sm:px-6">
+                                            <div class="flex items-center">
+                                                <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                    {{ $loop->iteration }}
+                                                </p>
+                                            </div>
+                                        </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-14 overflow-hidden rounded-md">
+                                                            <img src="{{ $b->cover ? $b->cover : './images/book/book-1.jpg' }}" alt="brand" />
+                                                        </div>
+
+                                                        <div>
+                                                            <span
+                                                                class="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                                                                {{ $b->title }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        @foreach ($b->authors as $author)
+                                                            {{ $author->name }}@if (!$loop->last), @endif
+                                                        @endforeach
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $b->published_date }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $b->isbn }}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        {{ $b->pages }} Halaman
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <p class="text-gray-500 text-theme-sm dark:text-gray-400">
+                                                        @foreach ($b->genres as $genre)
+                                                            {{ $genre->name }}@if (!$loop->last), @endif
+                                                        @endforeach
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 sm:px-6">
+                                                <div class="flex items-center">
+                                                    <a href="#"
+                                                        class="text-theme-xs font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white/90">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                                            fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16">
+                                                            <path
+                                                                d="M12.146 0.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-1.5 1.5-3-3 1.5-1.5zM11.5 2.5l-1.5 1.5-3-3 1.5-1.5a.5.5 0 0 1 .708 0l3 3zM1 12.5V16h3.5l8-8-3.5-3.5-8 8z" />
+                                                        </svg>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                </tbody>
                             </table>
                         </div>
                     </div>
