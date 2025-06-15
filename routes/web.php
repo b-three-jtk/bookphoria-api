@@ -9,6 +9,8 @@ use App\Http\Controllers\Admin\GenreController;
 use App\Http\Controllers\Admin\AuthorController;
 use Illuminate\Auth\Notifications\ResetPassword;
 use App\Http\Controllers\Admin\DashboardController;
+use Illuminate\Support\Facades\Notification;
+use App\Http\Controllers\UserAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,9 +76,16 @@ Route::get('/test-mail', function() {
 });
 
 Route::get('/test-reset-password', function() {
-    $user = \App\Models\User::first(); // Ambil user contoh
-    
-    $user->notify(new ResetPassword('token-reset-contoh'));
-    
-    return "Email reset password terkirim!";
+    $user = \App\Models\User::first();
+    if ($user) {
+        $user->notify(new \App\Notifications\ResetPassword('test-token'));
+        return "Email reset password terkirim!";
+    }
+    return "User tidak ditemukan!";
 });
+
+Route::get('/reset-password', [UserAuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [UserAuthController::class, 'resetPassword'])->name('reset-password');
+Route::get('/reset-password-success', function () {
+    return view('auth.reset-success');
+})->name('password.reset.success');

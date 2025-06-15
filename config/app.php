@@ -16,6 +16,8 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'debug' => env('APP_DEBUG', true),
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:8000'),
 
     /*
     |--------------------------------------------------------------------------
