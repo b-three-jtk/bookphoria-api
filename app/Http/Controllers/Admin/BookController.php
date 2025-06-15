@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 
 class BookController extends Controller
 {
-    //
     public function index()
     {
         $books = Book::with(['authors', 'genres'])->get();
