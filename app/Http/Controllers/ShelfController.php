@@ -261,4 +261,15 @@ class ShelfController extends Controller
 
         return response()->json(['message' => 'Buku berhasil dihapus dari rak.']);
     }
+
+    public function getShelfByID($id)
+    {
+        $shelf = Shelf::with(['books', 'books.authors'])->find($id);
+
+        if (!$shelf) {
+            return response()->json(['message' => 'Shelf not found'], 404);
+        }
+
+        return response()->json($shelf);
+    }
 }

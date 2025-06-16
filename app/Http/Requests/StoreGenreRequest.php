@@ -13,7 +13,7 @@ class StoreGenreRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -25,6 +25,7 @@ class StoreGenreRequest extends FormRequest
     {
         return [
             //
+            'name' => 'required|string|max:255',
         ];
     }
 }

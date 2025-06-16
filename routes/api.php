@@ -29,7 +29,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // User routes, for registering, logging in, and logging out
 Route::post('register',[UserAuthController::class,'register']);
-Route::post('login',[UserAuthController::class,'login']);
+Route::post('login', [UserAuthController::class, 'login'])->name('api.login');
 Route::post('forgot-password', [UserAuthController::class, 'forgotPassword']);
 Route::post('reset-password', [UserAuthController::class, 'resetPassword']);
 Route::post('logout',[UserAuthController::class,'logout'])
@@ -66,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/shelves/{shelf}/books', [ShelfController::class, 'addBook']);
     Route::delete('/shelves/{shelf}/books/{book}', [ShelfController::class, 'removeBook']);
     Route::post('/shelves/update/{id}', [ShelfController::class, 'update']);
+    Route::get('/shelves/{id}', [ShelfController::class, 'getShelfById']);
 
     // Genre routes, for adding, deleting, and viewing genres master list
     Route::get('/genres', [GenreController::class, 'index']);
