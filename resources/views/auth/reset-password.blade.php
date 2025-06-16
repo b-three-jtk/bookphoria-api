@@ -197,6 +197,33 @@
         const confirmInput = document.getElementById('password_confirmation');
         const matchDiv = document.getElementById('password-match');
 
+        function isValidPassword(password) {
+            const passwordRegex = /^(?=.*[0-9])(?=.*[!@#\$%^&*])(?=.*[A-Za-z]).{8,}$/;
+            return passwordRegex.test(password);
+        }
+
+        function showPasswordValidationMessage() {
+            const password = passwordInput.value;
+            const hint = passwordInput.nextElementSibling;
+
+            if (!isValidPassword(password)) {
+                hint.textContent = "Password harus minimal 8 karakter, mengandung huruf, angka, dan simbol (!@#$%^&*)";
+                hint.style.color = "#dc3545";
+            } else {
+                hint.textContent = "Password valid";
+                hint.style.color = "#28a745";
+            }
+        }
+
+        passwordInput.addEventListener('input', function() {
+            showPasswordValidationMessage();
+
+            // Update match status
+            if (confirmInput.value.length > 0) {
+                confirmInput.dispatchEvent(new Event('input'));
+            }
+        });
+
         confirmInput.addEventListener('input', function() {
             const password = passwordInput.value;
             const confirm = this.value;
@@ -216,9 +243,13 @@
             }
         });
 
-        passwordInput.addEventListener('input', function() {
-            if (confirmInput.value.length > 0) {
-                confirmInput.dispatchEvent(new Event('input'));
+        // Prevent form submit if password invalid
+        document.getElementById('reset-form').addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+
+            if (!isValidPassword(password)) {
+                e.preventDefault();
+                alert("Password tidak valid. Harus minimal 8 karakter, mengandung huruf, angka, dan simbol (!@#$%^&*)");
             }
         });
     </script>
